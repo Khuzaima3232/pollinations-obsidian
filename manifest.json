@@ -1,0 +1,10 @@
+{
+	"id": "pollinations",
+	"name": "Pollinations",
+	"version": "1.0.0",
+	"minAppVersion": "1.4.0",
+	"description": "Generate text and images with Pollinations inside your notes. Connect your own account and pay with your own Pollen.",
+	"author": "Khuzaima3232",
+	"authorUrl": "https://github.com/Khuzaima3232",
+	"isDesktopOnly": false
+}
