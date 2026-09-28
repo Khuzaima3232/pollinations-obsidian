@@ -5,12 +5,15 @@
  * so the token is kept out of it: data.json holds settings, and the token lives
  * in the plugin's own directory with owner-only permissions on POSIX.
  */
-import { normalizePath, type App } from "obsidian";
+import { type App, normalizePath } from "obsidian";
 
 const TOKEN_FILE = "authorization";
 
 export class TokenStore {
-	constructor(private app: App, private manifestDir: string) {}
+	constructor(
+		private app: App,
+		private manifestDir: string,
+	) {}
 
 	private path(): string {
 		return normalizePath(`${this.manifestDir}/${TOKEN_FILE}`);

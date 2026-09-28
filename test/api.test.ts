@@ -8,7 +8,7 @@
  * Obsidian's requestUrl is not available outside the app, so it is stubbed with
  * a node:http implementation that mirrors its contract (including `throw:false`).
  */
-import { createServer, type Server } from "node:http";
+import { type Server, createServer } from "node:http";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 interface Recorded {
@@ -140,7 +140,11 @@ describe("device flow", () => {
 				: { status: 200, json: { access_token: "sk_live_token" } };
 		};
 		const code = await api.beginDeviceFlow();
-		const token = await api.pollDeviceFlow(code, () => false, async () => undefined);
+		const token = await api.pollDeviceFlow(
+			code,
+			() => false,
+			async () => undefined,
+		);
 		expect(token).toBe("sk_live_token");
 		expect(calls).toBe(3);
 	});
@@ -155,9 +159,13 @@ describe("device flow", () => {
 		};
 		const waits: number[] = [];
 		const code = await api.beginDeviceFlow();
-		const token = await api.pollDeviceFlow(code, () => false, async (ms) => {
-			waits.push(ms);
-		});
+		const token = await api.pollDeviceFlow(
+			code,
+			() => false,
+			async (ms) => {
+				waits.push(ms);
+			},
+		);
 		expect(token).toBe("sk_after_slowdown");
 		// 5s then 10s: the second wait is wider because of slow_down.
 		expect(waits[1]).toBeGreaterThan(waits[0]);
@@ -173,7 +181,11 @@ describe("device flow", () => {
 			interval: 5,
 		};
 		await expect(
-			api.pollDeviceFlow(code, () => true, async () => undefined),
+			api.pollDeviceFlow(
+				code,
+				() => true,
+				async () => undefined,
+			),
 		).rejects.toThrow(/cancelled/);
 	});
 
@@ -187,7 +199,11 @@ describe("device flow", () => {
 			interval: 5,
 		};
 		await expect(
-			api.pollDeviceFlow(code, () => false, async () => undefined),
+			api.pollDeviceFlow(
+				code,
+				() => false,
+				async () => undefined,
+			),
 		).rejects.toThrow(/declined/);
 	});
 });
@@ -217,7 +233,12 @@ describe("catalog", () => {
 			json: [
 				{ name: "a/image", output_modalities: ["image"], input_modalities: [] },
 				{ name: "b/video", output_modalities: ["video"] },
-				{ name: "c/editor", output_modalities: ["image"], input_modalities: ["image", "text"], resolutions: ["1024"] },
+				{
+					name: "c/editor",
+					output_modalities: ["image"],
+					input_modalities: ["image", "text"],
+					resolutions: ["1024"],
+				},
 				{ name: "d/text", output_modalities: ["text"] },
 			],
 		});
@@ -273,7 +294,9 @@ describe("generation", () => {
 	});
 
 	it("refuses a resolution the model does not advertise", async () => {
-		await expect(api.generateImage("sk_x", model, "x", "4096")).rejects.toThrow(/does not support the selected resolution/);
+		await expect(api.generateImage("sk_x", model, "x", "4096")).rejects.toThrow(
+			/does not support the selected resolution/,
+		);
 	});
 
 	it("refuses an empty prompt", async () => {

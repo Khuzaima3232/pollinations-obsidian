@@ -12,7 +12,8 @@ export class Notice {}
 export class Setting {}
 export class MarkdownView {}
 export class TFile {}
-export const normalizePath = (path: string): string => path.replace(/\\/g, "/").replace(/\/+/g, "/");
+export const normalizePath = (path: string): string =>
+	path.replace(/\\/g, "/").replace(/\/+/g, "/");
 export const requestUrl = async (): Promise<never> => {
 	throw new Error("requestUrl must be stubbed in tests");
 };

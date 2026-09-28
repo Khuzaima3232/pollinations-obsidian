@@ -12,6 +12,7 @@
 	"keywords": ["obsidian", "pollinations", "ai"],
 	"license": "MIT",
 	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
 		"@types/node": "^22.0.0",
 		"builtin-modules": "^4.0.0",
 		"esbuild": "^0.24.0",

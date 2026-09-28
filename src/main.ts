@@ -6,16 +6,16 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
-	TFile,
+	type TFile,
 } from "obsidian";
 import {
+	PollinationsError,
+	type PollinationsModel,
 	beginDeviceFlow,
 	generateImage,
 	generateText,
 	loadImageModels,
-	PollinationsError,
 	pollDeviceFlow,
-	type PollinationsModel,
 } from "./api";
 import { TokenStore } from "./store";
 
@@ -147,16 +147,21 @@ export default class PollinationsPlugin extends Plugin {
 		const selection = fromSelection ? editor.getSelection() : "";
 		const captured = editor.getCursor();
 
-		new PromptModal(this.app, fromSelection ? "Describe the change" : "Prompt", async (prompt) => {
-			try {
-				const token = this.requireToken();
-				new Notice("Pollinations: generating text…");
-				const text = await generateText(token, this.settings.textModel, prompt);
-				editor.replaceRange(text, captured);
-			} catch (error) {
-				new Notice(`Pollinations: ${this.describe(error)}`);
-			}
-		}, selection).open();
+		new PromptModal(
+			this.app,
+			fromSelection ? "Describe the change" : "Prompt",
+			async (prompt) => {
+				try {
+					const token = this.requireToken();
+					new Notice("Pollinations: generating text…");
+					const text = await generateText(token, this.settings.textModel, prompt);
+					editor.replaceRange(text, captured);
+				} catch (error) {
+					new Notice(`Pollinations: ${this.describe(error)}`);
+				}
+			},
+			selection,
+		).open();
 	}
 
 	private async promptForImage(edit: boolean): Promise<void> {
@@ -207,11 +212,12 @@ export default class PollinationsPlugin extends Plugin {
 		if (!(await this.app.vault.adapter.exists(folder))) {
 			await this.app.vault.createFolder(folder).catch(() => undefined);
 		}
-		const stem = prompt
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, "-")
-			.replace(/^-|-$/g, "")
-			.slice(0, 40) || "image";
+		const stem =
+			prompt
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, "-")
+				.replace(/^-|-$/g, "")
+				.slice(0, 40) || "image";
 		const name = `${folder}/${stem}-${Date.now().toString(36)}.png`;
 		const saved = await this.app.vault.createBinary(name, bytes);
 
@@ -297,7 +303,10 @@ class ApprovalModal extends Modal {
 }
 
 class PollinationsSettingTab extends PluginSettingTab {
-	constructor(app: App, private plugin: PollinationsPlugin) {
+	constructor(
+		app: App,
+		private plugin: PollinationsPlugin,
+	) {
 		super(app, plugin);
 	}
 

@@ -5,7 +5,7 @@
  * mobile, where fetch to a third-party host is blocked. Response bodies are
  * never put into a Notice — an error body can echo the bearer token.
  */
-import { requestUrl, type RequestUrlResponse } from "obsidian";
+import { type RequestUrlResponse, requestUrl } from "obsidian";
 
 export const ENTER = "https://enter.pollinations.ai";
 export const GEN = "https://gen.pollinations.ai";
@@ -37,9 +37,12 @@ interface RequestOptions {
 }
 
 const messageFor = (status: number): string => {
-	if (status === 401) return "Your Pollinations authorization expired or was revoked. Connect again.";
-	if (status === 402) return "Insufficient Pollen or budget. Add Pollen or raise the budget in your account.";
-	if (status === 403) return "Access denied. Check the model permissions on your Pollinations account.";
+	if (status === 401)
+		return "Your Pollinations authorization expired or was revoked. Connect again.";
+	if (status === 402)
+		return "Insufficient Pollen or budget. Add Pollen or raise the budget in your account.";
+	if (status === 403)
+		return "Access denied. Check the model permissions on your Pollinations account.";
 	if (status === 429) return "Rate limit reached. Wait a little and try again.";
 	return `Pollinations returned HTTP ${status}. Check the request and try again.`;
 };
@@ -134,9 +137,11 @@ export async function pollDeviceFlow(
 		if (typeof token === "string" && token.startsWith("sk_")) return token;
 		const error = result.error;
 		if (error === "slow_down") interval += 5;
-		else if (error === "access_denied") throw new PollinationsError("Authorization declined. Connect again when ready.");
+		else if (error === "access_denied")
+			throw new PollinationsError("Authorization declined. Connect again when ready.");
 		else if (error === "expired_token") break;
-		else if (error !== "authorization_pending") throw new PollinationsError("Authorization failed. Connect again.");
+		else if (error !== "authorization_pending")
+			throw new PollinationsError("Authorization failed. Connect again.");
 	}
 	throw new PollinationsError("Authorization code expired. Connect again for a new code.");
 }
@@ -146,7 +151,9 @@ export async function loadImageModels(token: string): Promise<PollinationsModel[
 	const catalog = await send<unknown>(`${GEN}/image/models`, { token });
 	if (!Array.isArray(catalog)) throw new PollinationsError("Invalid model catalog.");
 	const models = catalog
-		.filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+		.filter(
+			(entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object",
+		)
 		.filter((entry) => typeof entry.name === "string")
 		.filter((entry) => (entry.output_modalities as string[] | undefined)?.includes("image"))
 		.filter((entry) => !(entry.output_modalities as string[] | undefined)?.includes("video"))
@@ -157,7 +164,9 @@ export async function loadImageModels(token: string): Promise<PollinationsModel[
 			resolutions: (entry.resolutions as string[]) ?? [],
 		}));
 	if (models.length === 0) {
-		throw new PollinationsError("No image models available. Check your account's model permissions and balance.");
+		throw new PollinationsError(
+			"No image models available. Check your account's model permissions and balance.",
+		);
 	}
 	return models;
 }
@@ -167,17 +176,15 @@ export async function loadTextModels(token: string): Promise<string[]> {
 	const catalog = await send<unknown>(`${GEN}/text/models`, { token });
 	if (!Array.isArray(catalog)) throw new PollinationsError("Invalid model catalog.");
 	return catalog
-		.filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+		.filter(
+			(entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object",
+		)
 		.map((entry) => entry.name)
 		.filter((name): name is string => typeof name === "string");
 }
 
 /** One chat completion; returns the assistant text. */
-export async function generateText(
-	token: string,
-	model: string,
-	prompt: string,
-): Promise<string> {
+export async function generateText(token: string, model: string, prompt: string): Promise<string> {
 	const result = await send<Record<string, unknown>>(`${GEN}/v1/chat/completions`, {
 		token,
 		body: { model, messages: [{ role: "user", content: prompt }] },
@@ -230,7 +237,9 @@ export async function generateImage(
 	const data = result.data as { b64_json?: string }[] | undefined;
 	const encoded = data?.[0]?.b64_json;
 	if (typeof encoded !== "string" || !encoded) {
-		throw new PollinationsError("Generation returned no image. Check your account activity before retrying.");
+		throw new PollinationsError(
+			"Generation returned no image. Check your account activity before retrying.",
+		);
 	}
 	return fromBase64(encoded);
 }
